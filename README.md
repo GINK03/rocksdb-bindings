@@ -5,6 +5,10 @@ Go言語からRustでコンパイルされた関数を呼べるようにする�
 
 この例では、ダイナミックライブラリをRustで作り、Goで呼べるようにします  
 
+## Requirements
+- Go( 1.8.3 >= )
+- Rustc( 1.15.1 >= ) 
+
 ## Rustのマングル化の停止と、extern "C"オプションの追記
 Rustではマングル化という処理が行われて、ダイナミックライブラリが作成されても他のプログラムでは容易に再利用できなくなっています  
 そのため、各関数の上にマングル化を行わないようにするアノテーションをつけます
@@ -20,7 +24,7 @@ pub extern "C" fn echo_rust_string(x: *mut c_char) {
   println!("Hello Rust {}", x );                                                                                                                                                                     
 }   
  ```
-なお、GoとRustの文字列のやりとりが厄介で、\* mut c_char型でRustに私てやる必要があります  
+なお、GoとRustの文字列のやりとりが厄介で、\*mut c_char型でRustに渡してやる必要があります  
 
 これを入れることで、rustcで作成したダイナミックライブラリをnmコマンドで呼び出せる関数を探すと、echo_rust_iというものが存在するのがわかります  
 ```console
@@ -54,6 +58,7 @@ package main
 #include "bridge.h"
 */
 import "C"
+import "fmt"
 
 func main() {
         C.echo()
@@ -61,5 +66,22 @@ func main() {
         C.echoI(1234)
         C.echo_rust_i(3210)
         C.echo_rust_string(C.CString("ねむすぎる"))
+        fmt.Println("result as", C.rust_multiply(2, 3))
 }
+```
+このようにすることで、Goから文字列を渡したり、数字を渡したりして結果を受け取るとうことが可能になります　　
+
+## サンプルのコンパイルの仕方
+
+```cosnole
+$ make
+```
+mainというファイルができますので、実行してください　　　
+
+## Appendix
+Rust内部でのc_charの取り回し、クッソめんどくさいので、Rust内部でのリテラルの文字列を\*mut c_charに変換するのは、マクロか、関数化しておくといいかもしれない  
+```rust
+  let xin = concat!( "world", "\0");
+  let xin = xin.as_ptr() as *mut c_char;
+  echo_rust_string( xinet);
 ```
