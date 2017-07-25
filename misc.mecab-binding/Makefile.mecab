@@ -1,0 +1,7 @@
+
+all: wakachi.cpp
+	clang++ wakachi.cpp -std=c++1z -L/usr/lib -lmecab -lstdc++ -I/usr/include
+
+.PHONY: clean
+clean:
+	rm main libsample.so libsample_rust.so
