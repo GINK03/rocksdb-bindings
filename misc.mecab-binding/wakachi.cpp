@@ -15,10 +15,11 @@ const char* wakati(const char* text) {
 
 const char* wakati2(const char* text) {
   MeCab::Tagger *tagger = MeCab::createTagger("-Owakati");
-  char* result    = new char[1024];
+  int length      = static_cast<int>(strlen( text )) * 2;
+  char* result    = new char[length];
   strcpy(result, tagger->parse(text));
   delete tagger;
-  std::cout << result << std::endl;
+  //std::cout << result << std::endl;
   return result;  
 }
 
