@@ -20,5 +20,8 @@ pub extern "C" fn rust_multiply(x:i32, y:i32) -> i32 {
 fn main() {
   println!("hello world");
   echo_rust_i(123);
-  //echo_rust_string( b"Test\0");
+
+  let xin = concat!( "world", "\0");
+  let xin = xin.as_ptr() as *mut c_char;
+  echo_rust_string( xinet );
 }
