@@ -3,27 +3,24 @@ package main
 /*
 #cgo LDFLAGS: -ldl ./libwakati.so ./libsample_rust.so
 #include <dlfcn.h>
+#include <stdlib.h>
 #include "bridge.h"
 */
 import "C"
-import "fmt"
+import (
+	"fmt"
+	"unsafe"
+)
+
+func wakati(text string) {
+	raw := C.wakati2(C.CString(text))
+	spaced := C.GoString(raw)
+	defer C.free(unsafe.Pointer(raw))
+	fmt.Println(spaced)
+}
 
 func main() {
-	//C.echo()
-	//C.echoC(C.CString("眠い"))
-	raw := C.wakati(C.CString("この世で最も眠い"))
-	wakati := C.GoString(raw)
-
-	fmt.Println(wakati)
-
-	raw = C.wakati(C.CString("　ブームのきっかけは､5000兆円が欲しい絵師のケー・スワベ氏がpixivやTwitterで公開したこの5000兆円が欲しい!と思いたくなる画像である。 "))
-	wakati = C.GoString(raw)
-
-	fmt.Println(wakati)
-
-	C.echo_rust_i(3210)
-
-	C.echo_rust_string(C.CString("ねむすぎる"))
-
-	fmt.Println("result as", C.rust_multiply(2, 3))
+	for i := 0; i < 1000; i++ {
+		go wakati("この世で最も美しいもの")
+	}
 }
