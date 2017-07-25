@@ -1,4 +1,4 @@
-# Rustで作った関数をGo言語で利用する
+# RustやC++で作った関数をGo言語で利用する
 
 RustもGoも強力な言語なのですが、その資産の再利用を上手に行いたいというモチベーションがあり、  
 Go言語からRustでコンパイルされた関数を呼べるようにする例を示します  
@@ -8,6 +8,7 @@ Go言語からRustでコンパイルされた関数を呼べるようにする�
 ## Requirements
 - Go( 1.8.3 >= )
 - Rustc( 1.15.1 >= ) 
+- Clang( 4.0.0 >= )
 
 ## Rustのマングル化の停止と、extern "C"オプションの追記
 Rustではマングル化という処理が行われて、ダイナミックライブラリが作成されても他のプログラムでは容易に再利用できなくなっています  
@@ -31,6 +32,25 @@ pub extern "C" fn echo_rust_string(x: *mut c_char) {
 $ nm libsample_rust.so  | grep echo_rust_i
 00000000002df8c8 d _ZN11sample_rust11echo_rust_i15__STATIC_FMTSTR17hb3346aedcb71a8fcE
 00000000000529c0 T echo_rust_i
+```
+
+## C++は関数定義をextern "C"で囲う
+C++もマングル化が行われ、外部のGoなどのプログラムから参照できなくなってしまいます。  
+そのため、C++で任意の実装をする際には、ヘッダーファイルを外出ししてこのように記述すると、　Go言語から利用できます  
+```cpp
+extern "C" {
+  void echo();
+  void echoC(const char *);
+  void echoI(const int);
+}
+```
+
+このような書き方で、　ダイナミックオブジェクトを作成して、nmコマンドで中身を確認すると、このように、echo関数が見える状態になっていることがわかるかと思います  
+```console
+$ nm libsample.so  | grep echo
+0000000000000a40 T echo
+0000000000000a80 T echoC
+0000000000000ac0 T echoI
 ```
 
 ## Go言語側で呼び出す関数を記述したヘッダーファイルを用意する
