@@ -78,3 +78,10 @@ $ make
 ```
 mainというファイルができますので、実行してください　　　
 
+## Appendix
+Rust内部でのc_charの取り回し、クッソめんどくさいので、Rust内部でのリテラルの文字列を\*mut c_charに変換するのは、マクロか、関数化しておくといいかもしれない  
+```rust
+  let xin = concat!( "world", "\0");
+  let xin = xin.as_ptr() as *mut c_char;
+  echo_rust_string( xinet);
+```
