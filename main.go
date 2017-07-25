@@ -6,6 +6,7 @@ package main
 #include "bridge.h"
 */
 import "C"
+import "fmt"
 
 func main() {
 	C.echo()
@@ -15,4 +16,6 @@ func main() {
 	C.echo_rust_i(3210)
 
 	C.echo_rust_string(C.CString("ねむすぎる"))
+
+	fmt.Println("result as", C.rust_multiply(2, 3))
 }
