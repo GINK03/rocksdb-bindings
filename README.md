@@ -98,10 +98,19 @@ $ make
 ```
 mainというファイルができますので、実行してください　　　
 
+# benchmark. goroutineを利用した並列形態素解析
+Go言語の強さの一端は、Goroutineという、形態素解析
+
 ## Appendix
 Rust内部でのc_charの取り回し、クッソめんどくさいので、Rust内部でのリテラルの文字列を\*mut c_charに変換するのは、マクロか、関数化しておくといいかもしれない  
 ```rust
-  let xin = concat!( "world", "\0");
-  let xin = xin.as_ptr() as *mut c_char;
-  echo_rust_string( xinet);
+　　let x_ptr = CString::new("world").unwrap().as_ptr();
+　　echo_rust_string(x_ptr);
 ```
+なお、以下のやり方だと、メモリが関数を抜けると同時に解放されてしまい、うまくいかないらしい
+```rust
+let x_ptr = CString::new("world").unwrap().as_ptr();
+echo_rust_string(x_ptr); // 呼び出す前に一時オブジェクトが破棄されるためポインタの指す値は無効
+```
+書き方でメモリが解放されるか、されないかが決まるらしいので、要注意
+
