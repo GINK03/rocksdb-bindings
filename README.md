@@ -113,14 +113,22 @@ Go言語の強さの一端は、Goroutineという並列処理を行うことで
 比較として、Python3のMeCabと今回作成した、Goの分かち書きで、160万の日本語のニュースを分かち書きした際に、どの程度の速度の差がでるか  
 
 ```console
-$ time | python3 wakati.py
+$ time python3 benchmark.py 
+real    0m6.761s
+user    0m6.288s
+sys     0m0.468s
 ```
 
 ```console
 $ cd misc.mecab-binding
 $ make
-$ time | ./main
+$ time ./main 
+real    0m6.572s
+user    0m6.288s
+sys     0m0.544s
 ```
+ほとんど変わらないし、速度的な側面で言えば、Golangで形態素解析する意味はないように見える
+
 ## Appendix
 Rust内部でのc_charの取り回し、クッソめんどくさいので、Rust内部でのリテラルの文字列を\*mut c_charに変換するのは、マクロか、関数化しておくといいかもしれない  
 ```rust
