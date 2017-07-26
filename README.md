@@ -101,8 +101,18 @@ $ make
 mainというファイルができますので、実行してください　　　
 
 # benchmark. goroutineを利用した並列形態素解析
-Go言語の強さの一端は、Goroutineという、形態素解析
+Go言語の強さの一端は、Goroutineという並列処理を行うことで、どの程度、形態素解析が高速化されるか検証する  
+比較として、Python3のMeCabと今回作成した、Goの分かち書きで、160万の日本語のニュースを分かち書きした際に、どの程度の速度の差がでるか  
 
+```console
+$ time | python3 wakati.py
+```
+
+```console
+$ cd misc.mecab-binding
+$ make
+$ time | ./main
+```
 ## Appendix
 Rust内部でのc_charの取り回し、クッソめんどくさいので、Rust内部でのリテラルの文字列を\*mut c_charに変換するのは、マクロか、関数化しておくといいかもしれない  
 ```rust
