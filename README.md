@@ -44,6 +44,7 @@ extern "C" {
   void echo();
   void echoC(const char *);
   void echoI(const int);
+  const char* wakati2(const char*);
 }
 ```
 
@@ -62,6 +63,7 @@ GoはC言語との運用が可能なので、C言語の記述法で記述した�
 void echo();
 void echoC(char *);
 void echoI(int);
+char* wakati2(char*);
 
 // From Rust
 void echo_rust_i(int);
@@ -77,6 +79,7 @@ package main
 /*
 #cgo LDFLAGS: -ldl ./libsample.so ./libsample_rust.so
 #include <dlfcn.h>
+#include <stdlib.h>
 #include "bridge.h"
 */
 import "C"
@@ -89,9 +92,14 @@ func main() {
         C.echo_rust_i(3210)
         C.echo_rust_string(C.CString("ねむすぎる"))
         fmt.Println("result as", C.rust_multiply(2, 3))
+        
+        raw := C.wakati2(C.CString(text))
+        _ = C.GoString(raw)
+        defer C.free(unsafe.Pointer(raw)) // <- Rustや　C++で呼び出された関数に関しては、メモリが解放されないので、明示的にfreeする必要がある
 }
 ```
 このようにすることで、Goから文字列を渡したり、数字を渡したりして結果を受け取るとうことが可能になります　　
+Goのデータ構造にさっさとコピーして、渡ってきたデータをfreeしないと、予期しないメモリーリークの元になります  
 
 ## サンプルのコンパイルの仕方
 
