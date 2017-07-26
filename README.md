@@ -19,10 +19,12 @@ Rustではマングル化という処理が行われて、ダイナミックラ�
 pub extern "C" fn echo_rust_i(x:i32) {
   println!("Hello Rust {}", x);
 }
-#[no_mangle]                                                                                                                                                                                         
-pub extern "C" fn echo_rust_string(x: *mut c_char) {                                                                                                                                                 
-  let x = unsafe { CString::from_raw(x).into_string().unwrap() };                                                                                                                                    
-  println!("Hello Rust {}", x );                                                                                                                                                                     
+#[no_mangle]
+pub extern "C" fn echo_rust_string(x: *mut c_char) {
+  let x = unsafe { CStr::from_ptr(x) }; // <- 推奨関数がCStringではなくてCStr関数が良いとのことです
+  if let Ok(x) = x.to_str() {
+    println!("Hello Rust {}", x );
+  }
 }   
  ```
 なお、GoとRustの文字列のやりとりが厄介で、\*mut c_char型でRustに渡してやる必要があります  
@@ -114,3 +116,6 @@ echo_rust_string(x_ptr); // 呼び出す前に一時オブジェクトが破棄�
 ```
 書き方でメモリが解放されるか、されないかが決まるらしいので、要注意
 
+
+## 参考文献
+[1] [Rustでリテラルの文字を*mut c_char型する方法](https://teratail.com/questions/85658#reply-134128)
