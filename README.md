@@ -20,14 +20,15 @@ pub extern "C" fn echo_rust_i(x:i32) {
   println!("Hello Rust {}", x);
 }
 #[no_mangle]
-pub extern "C" fn echo_rust_string(x: *mut c_char) {
+pub extern "C" fn echo_rust_string(x: *const c_char) {
   let x = unsafe { CStr::from_ptr(x) }; // <- 推奨関数がCStringではなくてCStr関数が良いとのことです
   if let Ok(x) = x.to_str() {
     println!("Hello Rust {}", x );
   }
 }   
  ```
-なお、GoとRustの文字列のやりとりが厄介で、\*mut c_char型でRustに渡してやる必要があります  
+なお、GoとRustの文字列のやりとりが厄介で、\*const c_char型でRustに渡してやる必要があります  
+これをGoで宣言したら、　Goでメモリをちゃんとメモリを解放することで辻褄を合わせます
 
 これを入れることで、rustcで作成したダイナミックライブラリをnmコマンドで呼び出せる関数を探すと、echo_rust_iというものが存在するのがわかります  
 ```console
