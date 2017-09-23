@@ -1,5 +1,6 @@
 use std::os::raw::{c_char};
 use std::ffi::CString;
+use std::ffi::CStr;
 
 #[no_mangle]
 pub extern "C" fn echo_rust_i(x:i32) {
@@ -7,8 +8,9 @@ pub extern "C" fn echo_rust_i(x:i32) {
 }
 
 #[no_mangle]
-pub extern "C" fn echo_rust_string(x: *mut c_char) {
-  let x = unsafe { CString::from_raw(x).into_string().unwrap() };
+pub extern "C" fn echo_rust_string(x: *const c_char) {
+  let x = unsafe { CStr::from_ptr(x).to_str() };
+  let x = x.unwrap();
   println!("Hello Rust {}", x );
 }
 
@@ -22,6 +24,6 @@ fn main() {
   echo_rust_i(123);
 
   let xin = concat!( "world", "\0");
-  let xin = xin.as_ptr() as *mut c_char;
+  let xin = xin.as_ptr() as *const c_char;
   echo_rust_string( xin );
 }
