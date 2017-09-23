@@ -38,7 +38,7 @@ $ nm libsample_rust.so  | grep echo_rust_i
 
 ## C++は関数定義をextern "C"で囲う
 C++もマングル化が行われ、外部のGoなどのプログラムから参照できなくなってしまいます。  
-そのため、C++で任意の実装をする際には、ヘッダーファイルを外出ししてこのように記述すると、　Go言語から利用できます  
+そのため、C++で任意の実装をする際には、ヘッダーファイルを外出ししてこのように記述すると、Go言語から利用できます  
 ```cpp
 extern "C" {
   void echo();
@@ -90,13 +90,10 @@ func main() {
         C.echoC(C.CString("眠い"))
         C.echoI(1234)
         C.echo_rust_i(3210)
-        C.echo_rust_string(C.CString("ねむすぎる"))
         fmt.Println("result as", C.rust_multiply(2, 3))
         
         raw := C.wakati2(C.CString(text))
-        _ = C.GoString(raw)
-        defer C.free(unsafe.Pointer(raw)) // <- Rustや　C++で呼び出された関数に関しては、メモリが解放されないので、明示的にfreeする必要がある
-}
+ }
 ```
 このようにすることで、Goから文字列を渡したり、数字を渡したりして結果を受け取るとうことが可能になります　　
 Goのデータ構造にさっさとコピーして、渡ってきたデータをfreeしないと、予期しないメモリーリークの元になります  
@@ -129,19 +126,14 @@ sys     0m0.544s
 ```
 ほとんど変わらないし、速度的な側面で言えば、Golangで形態素解析する意味はないように見える
 
-## Appendix
-Rust内部でのc_charの取り回し、クッソめんどくさいので、Rust内部でのリテラルの文字列を\*mut c_charに変換するのは、マクロか、関数化しておくといいかもしれない  
-```rust
-　　let x_ptr = CString::new("world").unwrap().as_ptr();
-　　echo_rust_string(x_ptr);
-```
-なお、以下のやり方だと、メモリが関数を抜けると同時に解放されてしまい、うまくいかないらしい
-```rust
-let x_ptr = CString::new("world").unwrap().as_ptr();
-echo_rust_string(x_ptr); // 呼び出す前に一時オブジェクトが破棄されるためポインタの指す値は無効
-```
-書き方でメモリが解放されるか、されないかが決まるらしいので、要注意
+## Appendix1
+Rust内部でのc_charの取り回し、めんどくさいので、Rust内部でのリテラルの文字列を\*const c_charに変換するのは、マクロか、関数化しておくといいかもしれない  
 
+## Appendix2
+環境やバージョン依存だと思うんですが、稀に、soファイルを認識しないことがあってその場合、以下の環境変数を通すことでうまくいく
+```console
+$ export LD_LIBRARY_PATH=$PWD:$LD_LIBRARY_PATH
+```
 
 ## 参考文献
 [1] [Rustでリテラルの文字を*mut c_char型する方法](https://teratail.com/questions/85658#reply-134128)
