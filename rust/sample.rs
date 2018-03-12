@@ -21,6 +21,7 @@ extern {
   fn helloDB(name:*const c_char) -> ();
   fn putDB(dbName:*const c_char, key:*const c_char, value:*const c_char) -> i32;
   fn getDB(dbName:*const c_char, key:*const c_char, value:*mut c_char) -> i32;
+  fn delDB(dbName:*const c_char, key:*const c_char) -> i32;
   
 }
 
@@ -40,29 +41,36 @@ impl Rocks {
     let dbName = format!("{}\0", &*(self.dbName));
     let key = format!("{}\0",  key);
     let value = format!("{}\0", value);
-    println!("{}", self.dbName);
-    println!("{}", key);
+    //println!("{}", self.dbName);
+    //println!("{}", key);
     let sub = unsafe { putDB( (&*dbName).as_ptr() as *const c_char, key.as_ptr() as *const c_char, value.as_ptr() as *const c_char) };
-    println!("{}",sub);
+    //println!("{}",sub);
     sub
   }
 }
-type arr_type = [c_char; 2000];
+type arr_type = [c_char; 1024*8];
 impl Rocks {
   pub fn get(&self, key:&str) -> (i32,String) {
     let dbName = format!("{}\0", &*(self.dbName));
     let key = format!("{}\0",  key);
-    println!("{}", self.dbName);
-    println!("{}", key);
-    let mut value : arr_type = [0; 2000]; 
+    //println!("{}", self.dbName);
+    //println!("{}", key);
+    let mut value : arr_type = [0; 1024*8]; 
     let sub = unsafe { getDB( (&*dbName).as_ptr() as *const c_char, key.as_ptr() as *const c_char, value.as_ptr() as *mut c_char) };
     let c_str: &CStr = unsafe { CStr::from_ptr(value.as_ptr()) };
     let str_slice: &str = c_str.to_str().unwrap();
     let str_buf: String = str_slice.to_owned();
-    println!("{}",sub);
-
-    println!("{}",str_buf);
+    //println!("{}",sub);
+    //println!("{}",str_buf);
     (sub,str_buf)
+  }
+}
+impl Rocks {
+  pub fn del(&self, key:&str) -> i32 {
+    let dbName = format!("{}\0", &*(self.dbName));
+    let key = format!("{}\0",  key);
+    let sub = unsafe { delDB( (&*dbName).as_ptr() as *const c_char, key.as_ptr() as *const c_char) };
+    sub
   }
 }
 
@@ -72,4 +80,28 @@ fn main() {
   rocks.put("some-key", "some-value");
   let (status, value) = rocks.get("some-key");
   println!("p {}", value);
+
+  (0..1000).map ( |x| { 
+    let key = format!("{}", x);
+    let val = format!("{}", x*2);
+    let status = rocks.put(&*key, &*val);
+    println!("{}", key); 
+    println!("{}", val); 
+    println!("status {}", status); 
+  } ).collect::<Vec<()>>();
+
+  (0..1000).map ( |x| { 
+    let key = format!("{}", x);
+    let (status, val) = rocks.get(&*key);
+    println!("get {}", key); 
+    println!("get {}", val); 
+    println!("get status {}", status); 
+  } ).collect::<Vec<()>>();
+
+  (0..1000).map ( |x| { 
+    let key = format!("{}", x);
+    let status = rocks.del(&*key);
+    println!("del {}", key); 
+    println!("del status {}", status); 
+  } ).collect::<Vec<()>>();
 }
