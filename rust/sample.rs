@@ -13,10 +13,11 @@ use std::ops::{Add};
 use std::cmp::{Eq, Ord, PartialOrd};
 use std::collections::HashSet;
 use std::marker::Copy;
+use std::os::raw::{c_char};
 
 #[link(name = "rocks")]
 extern {
-  fn hello() -> ();
+  fn hello(name:*const c_char) -> ();
 }
 
 pub struct Rocks {
@@ -33,5 +34,5 @@ impl Rocks {
 fn main() {
   println!("hello world");
   let rocks = Rocks::new( "rocks.rdb" );
-  unsafe { hello() };
+  unsafe { hello( "any\0".as_ptr() as *const c_char) };
 }
