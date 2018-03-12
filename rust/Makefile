@@ -1,0 +1,3 @@
+
+all:
+	rustc sample.rs
