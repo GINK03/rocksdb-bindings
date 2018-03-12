@@ -17,7 +17,9 @@ use std::os::raw::{c_char};
 
 #[link(name = "rocks")]
 extern {
-  fn hello(name:*const c_char) -> ();
+  fn helloDB(name:*const c_char) -> ();
+  fn putDB(dbName:*const c_char, key:*const c_char, value:*const c_char) -> i32;
+  
 }
 
 pub struct Rocks {
@@ -26,7 +28,21 @@ pub struct Rocks {
 }
 impl Rocks {
   pub fn new( dbName:&str) -> Rocks {
-    Rocks{ dbName:dbName.to_string(), cursol:0 }
+    let outName = format!("{}\0", dbName);
+    unsafe { helloDB( outName.as_ptr() as *const c_char) };
+    Rocks{ dbName:outName.to_string(), cursol:0 }
+  }
+}
+impl Rocks {
+  pub fn put(self, key:&str, value:&str) -> i32 {
+    let dbName = format!("{}\0", &*(self.dbName));
+    let key = format!("{}\0",  key);
+    let value = format!("{}\0", value);
+    println!("{}", self.dbName);
+    println!("{}", key);
+    let sub = unsafe { putDB( (&*dbName).as_ptr() as *const c_char, key.as_ptr() as *const c_char, value.as_ptr() as *const c_char) };
+    println!("{}",sub);
+    sub
   }
 }
 
@@ -34,5 +50,5 @@ impl Rocks {
 fn main() {
   println!("hello world");
   let rocks = Rocks::new( "rocks.rdb" );
-  unsafe { hello( "any\0".as_ptr() as *const c_char) };
+  rocks.put("some-key", "some-value");
 }
