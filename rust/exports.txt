@@ -1,0 +1,2 @@
+export LD_LIBRARY_PATH=../cpp-shared/:$LD_LIBRARY_PATH
+

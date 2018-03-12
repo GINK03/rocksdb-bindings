@@ -14,12 +14,24 @@ use std::cmp::{Eq, Ord, PartialOrd};
 use std::collections::HashSet;
 use std::marker::Copy;
 
-pub struct RFrame<T:Clone>{
-  pub header:Option<HashMap<String,i32>>,
-  pub cursol:i32,
-  pub vec: Vec<T>,
+#[link(name = "rocks")]
+extern {
+  fn hello() -> ();
 }
+
+pub struct Rocks {
+  pub dbName:String,
+  pub cursol:i32,
+}
+impl Rocks {
+  pub fn new( dbName:&str) -> Rocks {
+    Rocks{ dbName:dbName.to_string(), cursol:0 }
+  }
+}
+
 
 fn main() {
   println!("hello world");
+  let rocks = Rocks::new( "rocks.rdb" );
+  unsafe { hello() };
 }

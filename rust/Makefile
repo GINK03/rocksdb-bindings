@@ -1,3 +1,3 @@
 
 all:
-	rustc sample.rs
+	rustc sample.rs -L../cpp-shared
