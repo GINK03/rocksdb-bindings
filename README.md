@@ -164,6 +164,68 @@ BUILD SUCCESSFUL
 ```
 
 ## Python
+PythonはBoostPythonを用いると簡単にRocksDB <-> Pythonをつなぐことができます。  
+Python3とも問題なくBindingすることができて便利です。  
+ネット上のドキュメントにはDeprecatedになった大量のSyntaxが入り混じっており、大変混沌としていたので、一つ確実に動く基準を設けて書くのが良さそうでした。  
+**CPPファイルの定義**  
+CPPでRocksDBを扱うクラスを定義し、諸々実装を行います
+```cpp
+#include <boost/python.hpp>
+#include <string>
+#include <cstdio>
+#include <string>
+#include <iostream>
+
+#include "rocksdb/db.h"
+#include "rocksdb/slice.h"
+#include "rocksdb/options.h"
+
+using namespace rocksdb;
+namespace py = boost::python;
+
+class RDB{
+  private:
+  DB* db;
+  public:
+  std::string dbName;
+  RDB(std::string dbName): dbName(dbName){
+    Options options;
+    options.IncreaseParallelism();
+    options.create_if_missing = true;
+    Status s = DB::Open(options, dbName, &(this->db));
+  };
+  RDB(py::list ch);
+  void put(std::string key, std::string value);
+  std::string get(std::string key);
+  void dlt(std::string key);
+  py::list keys();
+};
+
+void RDB::put(std::string key, std::string value) {
+  this->db->Put(WriteOptions(), key, value);
+}
+....
+```
+**pythonの実装**  
+Pythonで用いるのは簡単で、shared object名と同名のやつを読み出して、インスタンスを作成して、関数を叩くだけです（めっちゃ簡単）  
+```python
+from rdb import RDB
+
+# create drow instance
+db = RDB('/tmp/boost.rdb')
+
+# access the word and print it
+print( db.dbName )
+
+db.put('key1', 'val1')
+
+val = db.get('key1')
+print(val)
+db.put('key2', 'val2')
+
+print(db.keys())
+val = db.delete('key1')
+```
 
 ## 参考文献
 - [1] [LSM-TreeとRocksDB、TiDB、CockroachDBが気になる](https://hnakamur.github.io/blog/2016/06/20/lsm-tree-and-rocksdb/)
