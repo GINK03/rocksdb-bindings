@@ -205,8 +205,9 @@ BUILD SUCCESSFUL
 ## 6. Python
 PythonはBoostPythonを用いると簡単にRocksDB <-> Pythonをつなぐことができます。  
 Python3とも問題なくBindingすることができて便利です。  
-ネット上のドキュメントにはDeprecatedになった大量のSyntaxが入り混じっており、大変混沌としていたので、一つ確実に動く基準を設けて書くのが良さそうでした。  
-**CPPファイルの定義**  
+ネット上のBoostPythonのドキュメントにはDeprecatedになった大量のSyntaxが入り混じっており、大変混沌としていたので、一つ確実に動く基準を設けて書くのが良さそうでした  
+
+**CPPファイルの定義**  
 CPPでRocksDBを扱うクラスを定義し、諸々実装を行います
 ```cpp
 #include <boost/python.hpp>
@@ -268,4 +269,5 @@ val = db.delete('key1')
 
 ## 参考文献
 - [1] [LSM-TreeとRocksDB、TiDB、CockroachDBが気になる](https://hnakamur.github.io/blog/2016/06/20/lsm-tree-and-rocksdb/)
+- [2] [Open-sourcing a 10x reduction in Apache Cassandra tail latency](https://engineering.instagram.com/open-sourcing-a-10x-reduction-in-apache-cassandra-tail-latency-d64f86b43589)
 
