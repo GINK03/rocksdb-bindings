@@ -25,6 +25,44 @@ P99というテストケースではデフォルトのJVMからRocksDBに張り�
 ## Rust
 
 ## Kotlin
+Kotlin, JavaではGradleに追加することで簡単に利用可能になります。  
+```build.gradle
+compile group: 'org.rocksdb', name: 'rocksdbjni', version: '5.10.3'
+```
+Interfaceも整理されており、以下のように簡単に、put, get, iterate, deleteが行えます  
+```kotlin
+import org.rocksdb.RocksDB
+import org.rocksdb.Options
 
+fun main(args : Array<String>) {
+  RocksDB.loadLibrary()
+  // DBをなければ作成して開く
+  val options = Options().setCreateIfMissing(true)
+  val db = RocksDB.open(options, "/tmp/kotlin.rdb")
+
+  // データのput
+  val key1 = "key1".toByteArray()
+  val value1 = "value1".toByteArray()
+  db.put(key1, value1)
+
+  val key2 = "key2".toByteArray()
+  val value2 = "value2".toByteArray()
+  db.put(keygetvalue2)
+  val bvalue = db.get(key1)
+  println(String(bvalue))
+
+  // seek to end
+  val iter = db.newIterator()
+  iter.seekToFirst()
+  while( iter.isValid() ) {
+    println("${String(iter.key())} ${String(iter.value())}")
+    iter.next()
+  }
+
+  // データの削除
+  db.del(key1)
+  db.del(key2)
+}
+```
 ## Python
 
