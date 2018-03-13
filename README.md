@@ -1,4 +1,4 @@
-# RocksDBをさまざまな言語で利用する
+# RocksDBをさまざまな言語（C++, Rust, Kotlin, Python）で利用する
 
 [InstagramのCassandraのバックエンドをJVMベースのものから、RocksDBに切り替えたというニュース](https://engineering.instagram.com/open-sourcing-a-10x-reduction-in-apache-cassandra-tail-latency-d64f86b43589)が少し話題になりました。  
 
@@ -10,7 +10,12 @@ P99というテストケースではデフォルトのJVMからRocksDBに張り�
 </div>
 
 データ分析でもメモリ収まりきらないけど、Sparkのような分散システムを本格に用意する必要がない場合、NVMe上にLevelDBなどのKVSを用意して加工することがあります。  
+
 ローカルで動作させるには最強の速度だし、文句のつけようもない感じです。  
+
+LSMというデータ構造で動いており、比較対象としてよく現れるb-treeより書き込み時のパフォーマンスは良いようです[1]  
+
+LSMのデータ構造では挿入にO(1)の計算量が必要で、検索と削除にO(N)の計算量が必要です。
 
 
 ## 前提
@@ -18,7 +23,15 @@ P99というテストケースではデフォルトのJVMからRocksDBに張り�
 - LevelDB, RocksDBはPythonで分析するときの必勝パターンに自分のスキルの中に入っているので、ぜひともRocksDBも開拓したい
 - RocksDBはC++のインターフェースが美しい形で提供さており、他言語とのBindingが簡単そう
 
-## RocksDBのインストール
+## もくじ
+- **1.** RocksDBのインストール(Linux)
+- **2.** Pure C++でのRocksDBの利用
+- **3.** C++ Bindingの方針
+- **4.** Rustでの利用
+- **5.** Kotlinでの利用
+- **6.** Python(BoostPython)での利用
+
+## 1. RocksDBのインストール
 Ubuntuですと標準レポジトリにないので、ビルドしてインストールする必要があります  
 ```console
 $ git clone git@github.com:facebook/rocksdb.git
@@ -30,12 +43,40 @@ $ make -j12
 $ sudo make install
 ```
 
-## Pure C++
-**注意**  
+## 2. Pure C++
+**注意**  最新のClangでは構文エラーでコンパイラが通らないので、gcc(g++ > 7.2.0)を利用必要があります  
 
-最新のClangでは構文エラーでコンパイラが通らないので、gcc(g++ > 7.2.0)を利用必要があります  
+C++でRocksDBは記述されているので、C++でのインターフェースが最も優れています。　　
 
-## C++bindings
+**DB**のopen, get, putはこのようなIFで提供されています
+```cpp
+  DB* db;
+  Options options;
+  // Optimize RocksDB. This is the easiest way to get RocksDB to perform well
+  options.IncreaseParallelism();
+  // create the DB if it's not already present
+  options.create_if_missing = true;
+  // open DB
+  string kDBPath = "test.rdb";
+  Status s = DB::Open(options, kDBPath, &db);
+  assert(s.ok());
+  // Put key-value
+  s = db->Put(WriteOptions(), "key1", "value");
+  assert(s.ok());
+
+  // get value
+  string value;
+  s = db->Get(ReadOptions(), "key1", &value);
+  assert(s.ok());
+  assert(value == "value");
+```
+Pinableという考え方があり、Pinableを用いると、データのコピーが発生しないので、高速性が要求されるときなど良さそうです  
+```cpp
+  PinnableSlice pinnable;
+  s = db->Get(ReadOptions(), db->DefaultColumnFamily(), "key1", &pinnable); // メモリコピーコストが発生しない
+```
+
+## 3. C++bindings
 C/C++でラッパーを書くことで任意のCのshared objectが利用できる言語とバインディングを行うことができます。  
 
 extern "C"で囲んだ範囲が外部のプログラムで見える関数になります。
@@ -64,7 +105,7 @@ $ ldd librocks.so
         /lib64/ld-linux-x86-64.so.2 (0x00007fdaf3e77000)
 ```
 
-## Rust
+## 4. Rust
 RustではC++のバインディングを利用してRocksDBにデータを格納したり取り出したりする方法を示します。  
 
 サンプルコードを動作させるには、以下のようにterminalを操作します。　　
@@ -101,7 +142,7 @@ impl Rocks {
 ```
 
 
-## Kotlin
+## 5. Kotlin
 Kotlin, JavaではGradleに追加することで簡単に利用可能になります。  
 ```build.gradle
 compile group: 'org.rocksdb', name: 'rocksdbjni', version: '5.10.3'
@@ -161,5 +202,80 @@ key2 value2
 BUILD SUCCESSFUL
 ```
 
-## Python
+## 6. Python
+PythonはBoostPythonを用いると簡単にRocksDB <-> Pythonをつなぐことができます。  
+Python3とも問題なくBindingすることができて便利です。  
+ネット上のBoostPythonのドキュメントにはDeprecatedになった大量のSyntaxが入り混じっており、大変混沌としていたので、一つ確実に動く基準を設けて書くのが良さそうでした  
+
+**CPPファイルの定義**  
+CPPでRocksDBを扱うクラスを定義し、諸々実装を行います
+```cpp
+#include <boost/python.hpp>
+#include <string>
+#include <cstdio>
+#include <string>
+#include <iostream>
+
+#include "rocksdb/db.h"
+#include "rocksdb/slice.h"
+#include "rocksdb/options.h"
+
+using namespace rocksdb;
+namespace py = boost::python;
+
+class RDB{
+  private:
+  DB* db;
+  public:
+  std::string dbName;
+  RDB(std::string dbName): dbName(dbName){
+    Options options;
+    options.IncreaseParallelism();
+    options.create_if_missing = true;
+    Status s = DB::Open(options, dbName, &(this->db));
+  };
+  RDB(py::list ch);
+  void put(std::string key, std::string value);
+  std::string get(std::string key);
+  void dlt(std::string key);
+  py::list keys();
+};
+
+void RDB::put(std::string key, std::string value) {
+  this->db->Put(WriteOptions(), key, value);
+}
+....
+```
+**pythonの実装**  
+Pythonで用いるのは簡単で、shared object名と同名のやつを読み出して、インスタンスを作成して、関数を叩くだけです（めっちゃ簡単）  
+```python
+from rdb import RDB
+
+# create drow instance
+db = RDB('/tmp/boost.rdb')
+
+# access the word and print it
+print( db.dbName )
+
+db.put('key1', 'val1')
+
+val = db.get('key1')
+print(val)
+db.put('key2', 'val2')
+
+print(db.keys())
+val = db.delete('key1')
+```
+
+## まとめ
+ユースケースとして、転置インデックスを巨大なデータ構造そのままで、力でゴリゴリ押ししようとしてもメモリ上に乗らなかったりするとき、KVSで達成したりします。  
+
+Valueは任意のシリアライザーでシリアライズしておく必要があり、Pythonだとpickle, KotlinだとKotlinx.serialize, Rustだとserdeなどが便利であります。  
+
+そういうときはLevelDB(RocksDBのFork元)を用いていたのですが、PythonラッパーとJavaはあったのですが、もっといろんな言語とBindingしようとすると、RocksDBのほうが便利だと思いました。  
+
+
+## 参考文献
+- [1] [LSM-TreeとRocksDB、TiDB、CockroachDBが気になる](https://hnakamur.github.io/blog/2016/06/20/lsm-tree-and-rocksdb/)
+- [2] [Open-sourcing a 10x reduction in Apache Cassandra tail latency](https://engineering.instagram.com/open-sourcing-a-10x-reduction-in-apache-cassandra-tail-latency-d64f86b43589)
 
