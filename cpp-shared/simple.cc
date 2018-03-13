@@ -15,6 +15,7 @@ extern "C" {
   int putDB(const char* dbname, const char* key, const char* value);
   int getDB(const char* dbname, const char* key, char* value);
   int delDB(const char* dbname, const char* key);
+  int keysDB(const char* dbname, char* keys);
 }
 
 class DBWrap {
@@ -50,6 +51,23 @@ class DBWrap {
     else
       return std::make_tuple(std::string(""), 0);
   }
+  std::tuple<std::string,int> keys() {
+    std::vector<std::string> keysvec;
+    rocksdb::Iterator* it = this->_db->NewIterator(rocksdb::ReadOptions());
+    for( it->SeekToFirst(); it->Valid(); it->Next()) {
+      auto onekey = it->key().ToString();
+      keysvec.push_back(onekey);
+      keysvec.push_back("");
+    }
+    // erase last control string
+    keysvec.erase( keysvec.end()-1 );
+    std::string keystr = "";
+    for(auto key : keysvec) 
+      keystr += key;
+
+    cout << "keystr " << keystr << endl;
+    return std::make_tuple(keystr,1);
+  }
 };
 
 static std::map<std::string,DBWrap> dbname_dbwrap;
@@ -83,6 +101,13 @@ int getDB(const char* dbname, const char* key, char* value) {
 int delDB(const char* dbname, const char* key) {
   auto dbwrap = dbname_dbwrap.find(dbname);
   auto status = dbwrap->second.del(key);
+  return status;
+}
+
+int keysDB(const char* dbname, char* keys) {
+  auto dbwrap = dbname_dbwrap.find(dbname);
+  auto [response, status] = dbwrap->second.keys();
+  std::memcpy(keys, response.c_str(), response.length());
   return status;
 }
 int main() {
