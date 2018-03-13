@@ -267,6 +267,12 @@ print(db.keys())
 val = db.delete('key1')
 ```
 
+## NVMeとHDDとのパフォーマンスの違い
+もっと決定的に処理速度の差が出ると思ったのですが、そんなに変わらないという感じでした。  
+<div align="center">
+  <img width="450px" src="https://user-images.githubusercontent.com/4949982/37352074-c509af92-271f-11e8-8e7d-1a1e399621e9.png">
+</div>
+
 ## まとめ
 ユースケースとして、転置インデックスを巨大なデータ構造そのままで、力でゴリゴリ押ししようとしてもメモリ上に乗らなかったりするとき、KVSで達成したりします。  
 
