@@ -25,7 +25,8 @@ class RDB{
   RDB(py::list ch);
   void put(std::string key, std::string value);
   std::string get(std::string key);
-  void del(std::string key);
+  void dlt(std::string key);
+  py::list keys();
   py::list get_chars();
 };
 
@@ -37,10 +38,20 @@ std::string RDB::get(std::string key) {
   auto s = this->db->Get(ReadOptions(), key, &value);
   return std::string(value);
 }
-void RDB::del(std::string key) {
+void RDB::dlt(std::string key) {
   auto s = this->db->Delete(WriteOptions(), key);
 }
 
+py::list RDB::keys() {
+  py::list keys;
+  auto it = db->NewIterator(rocksdb::ReadOptions());
+  for (it->SeekToFirst(); it->Valid(); it->Next()) {
+    //cout << it->key().ToString() << ": " << it->value().ToString() << endl;
+    keys.append( it->key().ToString() );
+  }
+  assert(it->status().ok());
+  return keys;
+}
 py::list RDB::get_chars(){
   py::list char_vec;
   for (auto c : dbName){
@@ -56,6 +67,7 @@ BOOST_PYTHON_MODULE(drow){
     .def("get_chars", &RDB::get_chars)
     .def("put", &RDB::put)
     .def("get", &RDB::get)
-    .def("del", &RDB::del)
+    .def("delete", &RDB::dlt)
+    .def("keys", &RDB::keys)
     .def_readwrite("dbName", &RDB::dbName);
 }
