@@ -267,6 +267,12 @@ print(db.keys())
 val = db.delete('key1')
 ```
 
+## まとめ
+ユースケースとして、転置インデックスを巨大なデータ構造そのままで、力でゴリゴリ押ししようとしてもメモリ上に乗らなかったりします。  
+
+そういうときはLevelDB(RocksDBのFork元)を用いていたのですが、PythonラッパーとJavaはあったのですが、もっといろんな言語とBindingしようとすると、RocksDBのほうが便利だと思いました。  
+
+
 ## 参考文献
 - [1] [LSM-TreeとRocksDB、TiDB、CockroachDBが気になる](https://hnakamur.github.io/blog/2016/06/20/lsm-tree-and-rocksdb/)
 - [2] [Open-sourcing a 10x reduction in Apache Cassandra tail latency](https://engineering.instagram.com/open-sourcing-a-10x-reduction-in-apache-cassandra-tail-latency-d64f86b43589)
