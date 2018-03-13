@@ -9,6 +9,10 @@ P999というテストケースではデフォルトのJVMからRocksDBに張り
   <img width="450px" src="https://cdn-images-1.medium.com/max/1600/1*E-2efj-mMo0dQWEvZyxn1g.png">
 </div>
 
+データ分析でもメモリ収まりきらないけど、Sparkのような分散システムを本格に用意する必要がない場合、NVMe上にLevelDBなどのKVSを用意して加工することがあります。  
+ローカルで動作させるには最強の速度だし、文句のつけようもない感じです。  
+
+
 ## 前提
 - RocksDBはSSDやnvmeで爆速を引き出すパーマネントKVSです  
 - LevelDB, RocksDBはPythonで分析するときの必勝パターンに自分のスキルの中に入っているので、ぜひともRocksDBも開拓したい
