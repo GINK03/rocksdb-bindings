@@ -27,7 +27,6 @@ class RDB{
   std::string get(std::string key);
   void dlt(std::string key);
   py::list keys();
-  py::list get_chars();
 };
 
 void RDB::put(std::string key, std::string value) {
@@ -52,19 +51,9 @@ py::list RDB::keys() {
   assert(it->status().ok());
   return keys;
 }
-py::list RDB::get_chars(){
-  py::list char_vec;
-  for (auto c : dbName){
-    char_vec.append(c);
-  }
-  return char_vec;
-}
 
-
-BOOST_PYTHON_MODULE(drow){
+BOOST_PYTHON_MODULE(rdb){
   py::class_<RDB>("RDB", py::init<std::string>())
-    //.def(py::init<py::list>())
-    .def("get_chars", &RDB::get_chars)
     .def("put", &RDB::put)
     .def("get", &RDB::get)
     .def("delete", &RDB::dlt)

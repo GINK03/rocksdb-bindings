@@ -1,7 +1,7 @@
-from drow import RDB
+from rdb import RDB
 
 # create drow instance
-db = RDB('boost.rdb')
+db = RDB('/tmp/boost.rdb')
 
 # access the word and print it
 print( db.dbName )
