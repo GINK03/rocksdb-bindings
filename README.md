@@ -12,6 +12,8 @@ P99というテストケースではデフォルトのJVMからRocksDBに張り�
 データ分析でもメモリ収まりきらないけど、Sparkのような分散システムを本格に用意する必要がない場合、NVMe上にLevelDBなどのKVSを用意して加工することがあります。  
 ローカルで動作させるには最強の速度だし、文句のつけようもない感じです。  
 
+LSMというデータ構造で動いており、比較対象としてよく現れるb-treeより書き込み時のパフォーマンスは良いようです[1]  
+
 
 ## 前提
 - RocksDBはSSDやnvmeで爆速を引き出すパーマネントKVSです  
@@ -162,4 +164,7 @@ BUILD SUCCESSFUL
 ```
 
 ## Python
+
+## 参考文献
+- [1] [LSM-TreeとRocksDB、TiDB、CockroachDBが気になる](https://hnakamur.github.io/blog/2016/06/20/lsm-tree-and-rocksdb/)
 
