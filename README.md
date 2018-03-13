@@ -31,8 +31,9 @@ $ sudo make install
 ```
 
 ## Pure C++
-**注意**  
-最新のClangでは構文エラーでコンパイラが通らないので、gcc(g++)を利用必要があります  
+**注意**  
+
+最新のClangでは構文エラーでコンパイラが通らないので、gcc(g++ > 7.2.0)を利用必要があります  
 
 ## C++bindings
 C/C++でラッパーを書くことで任意のCのshared objectが利用できる言語とバインディングを行うことができます。  
@@ -64,6 +65,15 @@ $ ldd librocks.so
 ```
 
 ## Rust
+RustではC++のバインディングを利用してRocksDBにデータを格納したり取り出したりする方法を示します。  
+
+サンプルコードを動作させるには、以下のようにterminalを操作します。　　
+```console
+$ cd rust
+$ export LD_LIBRARY_PATH=../cpp-shared/:$LD_LIBRARY_PATH
+$ make
+$ ./sample
+```
 
 
 ## Kotlin
