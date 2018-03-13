@@ -4,7 +4,7 @@
 
 CassandraのJVMは定期的にガーベジコレクタが走って、よろしくないようです。
 
-P999というテストケースではデフォルトのJVMからRocksDBに張り替えたところ10倍近くのパフォーマンスが得られたとのことです。
+P99というテストケースではデフォルトのJVMからRocksDBに張り替えたところ10倍近くのパフォーマンスが得られたとのことです。
 <div align="center">
   <img width="450px" src="https://cdn-images-1.medium.com/max/1600/1*E-2efj-mMo0dQWEvZyxn1g.png">
 </div>
@@ -16,7 +16,7 @@ P999というテストケースではデフォルトのJVMからRocksDBに張り
 ## 前提
 - RocksDBはSSDやnvmeで爆速を引き出すパーマネントKVSです  
 - LevelDB, RocksDBはPythonで分析するときの必勝パターンに自分のスキルの中に入っているので、ぜひともRocksDBも開拓したい
-- RocksDBはC++のインターフェースが美しい形で提供さており、多言語とのBindingが簡単そう
+- RocksDBはC++のインターフェースが美しい形で提供さており、他言語とのBindingが簡単そう
 
 ## Pure C++
 **注意**  
