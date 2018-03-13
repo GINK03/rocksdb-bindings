@@ -49,6 +49,35 @@ $ sudo make install
 
 最新のClangでは構文エラーでコンパイラが通らないので、gcc(g++ > 7.2.0)を利用必要があります  
 
+C++でRocksDBは記述されているので、C++でのインターフェースが最も優れています。
+**DB**のopen, get, putはこのようなIFで提供されています
+```cpp
+  DB* db;
+  Options options;
+  // Optimize RocksDB. This is the easiest way to get RocksDB to perform well
+  options.IncreaseParallelism();
+  // create the DB if it's not already present
+  options.create_if_missing = true;
+  // open DB
+  string kDBPath = "test.rdb";
+  Status s = DB::Open(options, kDBPath, &db);
+  assert(s.ok());
+  // Put key-value
+  s = db->Put(WriteOptions(), "key1", "value");
+  assert(s.ok());
+
+  // get value
+  string value;
+  s = db->Get(ReadOptions(), "key1", &value);
+  assert(s.ok());
+  assert(value == "value");
+```
+Pinableという考え方があり、Pinableを用いると、データのコピーが発生しないので、高速性が要求されるときなど良さそうです  
+```cpp
+  PinnableSlice pinnable;
+  s = db->Get(ReadOptions(), db->DefaultColumnFamily(), "key1", &pinnable); // メモリコピーコストが発生しない
+```
+
 ## 3. C++bindings
 C/C++でラッパーを書くことで任意のCのshared objectが利用できる言語とバインディングを行うことができます。  
 
