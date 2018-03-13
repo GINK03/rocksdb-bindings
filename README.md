@@ -10,6 +10,7 @@ P99というテストケースではデフォルトのJVMからRocksDBに張り�
 </div>
 
 データ分析でもメモリ収まりきらないけど、Sparkのような分散システムを本格に用意する必要がない場合、NVMe上にLevelDBなどのKVSを用意して加工することがあります。  
+
 ローカルで動作させるには最強の速度だし、文句のつけようもない感じです。  
 
 LSMというデータ構造で動いており、比較対象としてよく現れるb-treeより書き込み時のパフォーマンスは良いようです[1]  
@@ -22,7 +23,15 @@ LSMのデータ構造では挿入にO(1)の計算量が必要で、検索と削�
 - LevelDB, RocksDBはPythonで分析するときの必勝パターンに自分のスキルの中に入っているので、ぜひともRocksDBも開拓したい
 - RocksDBはC++のインターフェースが美しい形で提供さており、他言語とのBindingが簡単そう
 
-## RocksDBのインストール
+## もくじ
+- 1. RocksDBのインストール(Linux)
+- 2. Pure C++でのRocksDBの利用
+- 3. C++ Bindingの方針
+- 4. Rustでの利用
+- 5. Kotlinでの利用
+- 6. Python(BoostPython)での利用
+
+## 1. RocksDBのインストール
 Ubuntuですと標準レポジトリにないので、ビルドしてインストールする必要があります  
 ```console
 $ git clone git@github.com:facebook/rocksdb.git
@@ -34,12 +43,13 @@ $ make -j12
 $ sudo make install
 ```
 
-## Pure C++
+
+## 2. Pure C++
 **注意**  
 
 最新のClangでは構文エラーでコンパイラが通らないので、gcc(g++ > 7.2.0)を利用必要があります  
 
-## C++bindings
+## 3. C++bindings
 C/C++でラッパーを書くことで任意のCのshared objectが利用できる言語とバインディングを行うことができます。  
 
 extern "C"で囲んだ範囲が外部のプログラムで見える関数になります。
@@ -68,7 +78,7 @@ $ ldd librocks.so
         /lib64/ld-linux-x86-64.so.2 (0x00007fdaf3e77000)
 ```
 
-## Rust
+## 4. Rust
 RustではC++のバインディングを利用してRocksDBにデータを格納したり取り出したりする方法を示します。  
 
 サンプルコードを動作させるには、以下のようにterminalを操作します。　　
@@ -105,7 +115,7 @@ impl Rocks {
 ```
 
 
-## Kotlin
+## 5. Kotlin
 Kotlin, JavaではGradleに追加することで簡単に利用可能になります。  
 ```build.gradle
 compile group: 'org.rocksdb', name: 'rocksdbjni', version: '5.10.3'
@@ -165,7 +175,7 @@ key2 value2
 BUILD SUCCESSFUL
 ```
 
-## Python
+## 6. Python
 PythonはBoostPythonを用いると簡単にRocksDB <-> Pythonをつなぐことができます。  
 Python3とも問題なくBindingすることができて便利です。  
 ネット上のドキュメントにはDeprecatedになった大量のSyntaxが入り混じっており、大変混沌としていたので、一つ確実に動く基準を設けて書くのが良さそうでした。  
