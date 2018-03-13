@@ -18,11 +18,88 @@ P99というテストケースではデフォルトのJVMからRocksDBに張り�
 - LevelDB, RocksDBはPythonで分析するときの必勝パターンに自分のスキルの中に入っているので、ぜひともRocksDBも開拓したい
 - RocksDBはC++のインターフェースが美しい形で提供さており、他言語とのBindingが簡単そう
 
+## RocksDBのインストール
+Ubuntuですと標準レポジトリにないので、ビルドしてインストールする必要があります  
+```console
+$ git clone git@github.com:facebook/rocksdb.git
+$ cd rocksdb
+$ mkdir build
+$ cd build
+$ cmake ..
+$ make -j12
+$ sudo make install
+```
+
 ## Pure C++
-**注意**  
-最新のClangでは構文エラーでコンパイラが通らないので、gcc(g++)を利用する
+**注意**  
+
+最新のClangでは構文エラーでコンパイラが通らないので、gcc(g++ > 7.2.0)を利用必要があります  
+
+## C++bindings
+C/C++でラッパーを書くことで任意のCのshared objectが利用できる言語とバインディングを行うことができます。  
+
+extern "C"で囲んだ範囲が外部のプログラムで見える関数になります。
+```cpp
+extern "C" {
+  void helloDB(const char* dbname);
+  int putDB(const char* dbname, const char* key, const char* value);
+  int getDB(const char* dbname, const char* key, char* value);
+  int delDB(const char* dbname, const char* key);
+  int keysDB(const char* dbname, char* keys);
+}
+```
+サンプルのshared objectを作成するコードを用意したので、参考にしていただけると幸いです。
+```console
+$ cd cpp-shared
+$ make 
+$ ls librocks.so
+$ ldd librocks.so
+        linux-vdso.so.1 =>  (0x00007fff04ccd000)
+        librocksdb.so.5 => /usr/lib/x86_64-linux-gnu/librocksdb.so.5 (0x00007fdaf33ab000)
+        libstdc++.so.6 => /usr/lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007fdaf3025000)
+        libgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007fdaf2e0e000)
+        libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007fdaf2a2e000)
+        libpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007fdaf280f000)
+        libm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007fdaf24b9000)
+        /lib64/ld-linux-x86-64.so.2 (0x00007fdaf3e77000)
+```
 
 ## Rust
+RustではC++のバインディングを利用してRocksDBにデータを格納したり取り出したりする方法を示します。  
+
+サンプルコードを動作させるには、以下のようにterminalを操作します。　　
+```console
+$ cd rust
+$ export LD_LIBRARY_PATH=../cpp-shared/:$LD_LIBRARY_PATH
+$ make
+$ ./sample
+```
+
+Rustではstructで定義したものをimplで拡張していくのですが、例えば、putに関してはこのように設計しました。  
+C/C++などで文字の終了が示される\0が入らないことが多いため、このようなformatで文字を加工してC++に渡しています  
+```rust
+pub struct Rocks {
+  pub dbName:String,
+  pub cursol:i32,
+}
+impl Rocks {
+  pub fn new(dbName:&str) -> Rocks {
+    let outName = format!("{}\0", dbName);
+    unsafe { helloDB( outName.as_ptr() as *const c_char) };
+    Rocks{ dbName:outName.to_string(), cursol:0 }
+  }
+}
+impl Rocks {
+  pub fn put(&self, key:&str, value:&str) -> i32 {
+    let dbName = format!("{}\0", &*(self.dbName));
+    let key = format!("{}\0",  key);
+    let value = format!("{}\0", value);
+    let sub = unsafe { putDB( (&*dbName).as_ptr() as *const c_char, key.as_ptr() as *const c_char, value.as_ptr() as *const c_char) };
+    sub
+  }
+}
+```
+
 
 ## Kotlin
 Kotlin, JavaではGradleに追加することで簡単に利用可能になります。  
@@ -60,9 +137,29 @@ fun main(args : Array<String>) {
   }
 
   // データの削除
-  db.del(key1)
-  db.del(key2)
+  db.delete(key1)
+  db.delete(key2)
+  
+  db.close()
 }
 ```
+**実行**  
+```console
+$ cd kotlin
+$ ./gradlew run -Dexec.args=""
+Starting a Gradle Daemon, 1 busy Daemon could not be reused, use --status for details
+:compileKotlin UP-TO-DATE
+:compileJava UP-TO-DATE
+:copyMainKotlinClasses UP-TO-DATE
+:processResources NO-SOURCE
+:classes UP-TO-DATE
+:runApp
+value1
+key1 value1
+key2 value2
+
+BUILD SUCCESSFUL
+```
+
 ## Python
 
