@@ -1,4 +1,4 @@
-# RocksDBをさまざまな言語で利用する
+# RocksDBをさまざまな言語（C++, Rust, Kotlin, Python）で利用する
 
 [InstagramのCassandraのバックエンドをJVMベースのものから、RocksDBに切り替えたというニュース](https://engineering.instagram.com/open-sourcing-a-10x-reduction-in-apache-cassandra-tail-latency-d64f86b43589)が少し話題になりました。  
 
