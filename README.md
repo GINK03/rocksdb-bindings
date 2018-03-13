@@ -32,7 +32,7 @@ LSMのデータ構造では挿入にO(1)の計算量が必要で、検索と削�
 - **6.** Python(BoostPython)での利用
 
 これらのコードはこちらにあります。  
-[https://github.com/GINK03/rocksdb-bindings:embed]
+[https://github.com/GINK03/rocksdb-bindings]
 
 ## 1. RocksDBのインストール
 Ubuntuですと標準レポジトリにないので、ビルドしてインストールする必要があります  
