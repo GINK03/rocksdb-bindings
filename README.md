@@ -36,8 +36,33 @@ $ sudo make install
 
 ## C++bindings
 C/C++でラッパーを書くことで任意のCのshared objectが利用できる言語とバインディングを行うことができます。  
+
+extern "C"で囲んだ範囲が外部のプログラムで見える関数になります。
 ```cpp
+extern "C" {
+  void helloDB(const char* dbname);
+  int putDB(const char* dbname, const char* key, const char* value);
+  int getDB(const char* dbname, const char* key, char* value);
+  int delDB(const char* dbname, const char* key);
+  int keysDB(const char* dbname, char* keys);
+}
 ```
+サンプルのshared objectを作成するコードを用意したので、参考にしていただけると幸いです。
+```console
+$ cd cpp-shared
+$ make 
+$ ls librocks.so
+$ ldd librocks.so
+        linux-vdso.so.1 =>  (0x00007fff04ccd000)
+        librocksdb.so.5 => /usr/lib/x86_64-linux-gnu/librocksdb.so.5 (0x00007fdaf33ab000)
+        libstdc++.so.6 => /usr/lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007fdaf3025000)
+        libgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007fdaf2e0e000)
+        libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007fdaf2a2e000)
+        libpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007fdaf280f000)
+        libm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007fdaf24b9000)
+        /lib64/ld-linux-x86-64.so.2 (0x00007fdaf3e77000)
+```
+
 ## Rust
 
 
