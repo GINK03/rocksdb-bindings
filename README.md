@@ -24,12 +24,12 @@ LSMのデータ構造では挿入にO(1)の計算量が必要で、検索と削�
 - RocksDBはC++のインターフェースが美しい形で提供さており、他言語とのBindingが簡単そう
 
 ## もくじ
-- 1. RocksDBのインストール(Linux)
-- 2. Pure C++でのRocksDBの利用
-- 3. C++ Bindingの方針
-- 4. Rustでの利用
-- 5. Kotlinでの利用
-- 6. Python(BoostPython)での利用
+- **1.** RocksDBのインストール(Linux)
+- **2.** Pure C++でのRocksDBの利用
+- **3.** C++ Bindingの方針
+- **4.** Rustでの利用
+- **5.** Kotlinでの利用
+- **6.** Python(BoostPython)での利用
 
 ## 1. RocksDBのインストール
 Ubuntuですと標準レポジトリにないので、ビルドしてインストールする必要があります  
