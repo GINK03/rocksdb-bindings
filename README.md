@@ -9,7 +9,7 @@ P99というテストケースではデフォルトのJVMからRocksDBに張り�
   <img width="450px" src="https://cdn-images-1.medium.com/max/1600/1*E-2efj-mMo0dQWEvZyxn1g.png">
 </div>
 
-データ分析でもメモリ収まりきらないけど、Sparkのような分散システムを本格に用意する必要がない場合、NVMe上にLevelDBなどのKVSを用意して加工することがあります。  
+データ分析でもメモリ収まりきらないけど、Sparkのような分散システムを本格に用意する必要がない場合、NVMe上にLevelDB, RocksDBなどのKVSを用意して加工することがあります。  
 
 ローカルで動作させるには最強の速度だし、文句のつけようもない感じです。  
 
@@ -31,8 +31,13 @@ LSMのデータ構造では挿入にO(1)の計算量が必要で、検索と削�
 - **5.** Kotlinでの利用
 - **6.** Python(BoostPython)での利用
 
+これらのコードはこちらにあります。  
+[https://github.com/GINK03/rocksdb-bindings:embed]
+
 ## 1. RocksDBのインストール
 Ubuntuですと標準レポジトリにないので、ビルドしてインストールする必要があります  
+
+(GCC >= 7.2.0, cmakeなどの基本的なbuild-toolsが必要なので、ご自身のOSに合わせて用意してください)
 ```console
 $ git clone git@github.com:facebook/rocksdb.git
 $ cd rocksdb
@@ -44,7 +49,7 @@ $ sudo make install
 ```
 
 ## 2. Pure C++
-**注意**  最新のClangでは構文エラーでコンパイラが通らないので、gcc(g++ > 7.2.0)を利用必要があります  
+**注意**  最新のClangでは構文エラーでコンパイラが通らないので、gcc(g++ >= 7.2.0)を利用必要があります  
 
 C++でRocksDBは記述されているので、C++でのインターフェースが最も優れています。　　
 
@@ -70,7 +75,7 @@ C++でRocksDBは記述されているので、C++でのインターフェース�
   assert(s.ok());
   assert(value == "value");
 ```
-Pinableという考え方があり、Pinableを用いると、データのコピーが発生しないので、高速性が要求されるときなど良さそうです  
+Pinableという考え方があり、Pinableを用いると、データのコピーが発生しない(memcpyは動作しない)ので、高速性が要求されるときなど良さそうです  
 ```cpp
   PinnableSlice pinnable;
   s = db->Get(ReadOptions(), db->DefaultColumnFamily(), "key1", &pinnable); // メモリコピーコストが発生しない
@@ -117,7 +122,7 @@ $ ./sample
 ```
 
 Rustではstructで定義したものをimplで拡張していくのですが、例えば、putに関してはこのように設計しました。  
-C/C++などで文字の終了が示される\0が入らないことが多いため、このようなformatで文字を加工してC++に渡しています  
+C/C++などで文字の終了が示される\0が入らないため、このようなformatで文字を加工してC++に渡しています  
 ```rust
 pub struct Rocks {
   pub dbName:String,
@@ -208,6 +213,7 @@ Python3とも問題なくBindingすることができて便利です。  
 ネット上のBoostPythonのドキュメントにはDeprecatedになった大量のSyntaxが入り混じっており、大変混沌としていたので、一つ確実に動く基準を設けて書くのが良さそうでした  
 
 **CPPファイルの定義**  
+
 CPPでRocksDBを扱うクラスを定義し、諸々実装を行います
 ```cpp
 #include <boost/python.hpp>
@@ -247,6 +253,7 @@ void RDB::put(std::string key, std::string value) {
 ....
 ```
 **pythonの実装**  
+
 Pythonで用いるのは簡単で、shared object名と同名のやつを読み出して、インスタンスを作成して、関数を叩くだけです（めっちゃ簡単）  
 ```python
 from rdb import RDB
@@ -274,11 +281,11 @@ val = db.delete('key1')
 </div>
 
 ## まとめ
-ユースケースとして、転置インデックスを巨大なデータ構造そのままで、力でゴリゴリ押ししようとしてもメモリ上に乗らなかったりするとき、KVSで達成したりします。  
+ユースケースとして、転置インデックスを巨大なデータ構造そのままで、力でゴリゴリ押ししようとしてもメモリ上に乗らなかったりするとき、KVSとしてデータをファイルに書き出すことで効率的に行えたりします。（例えばWikipediaの記事全量からtf-idfを計算するときなど）  
 
-Valueは任意のシリアライザーでシリアライズしておく必要があり、Pythonだとpickle, KotlinだとKotlinx.serialize, Rustだとserdeなどが便利であります。  
+Valueは任意のシリアライザーでシリアライズしておく必要があり、Pythonだとpickle, KotlinだとKotlinx.serialize, Rustだとserdeなどが便利です。  
 
-そういうときはLevelDB(RocksDBのFork元)を用いていたのですが、PythonラッパーとJavaはあったのですが、もっといろんな言語とBindingしようとすると、RocksDBのほうが便利だと思いました。  
+今まではLevelDB(RocksDBのFork元)を用いていたのですが、PythonとC++しか実用的な装系がなく、もっといろんな言語とBindingしようとすると、RocksDBのほうが便利だと思いました。  
 
 
 ## 参考文献
