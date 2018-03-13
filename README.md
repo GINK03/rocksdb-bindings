@@ -75,6 +75,31 @@ $ make
 $ ./sample
 ```
 
+Rustではstructで定義したものをimplで拡張していくのですが、例えば、putに関してはこのように設計しました。  
+C/C++などで文字の終了が示される\0が入らないことが多いため、このようなformatで文字を加工してC++に渡しています  
+```rust
+pub struct Rocks {
+  pub dbName:String,
+  pub cursol:i32,
+}
+impl Rocks {
+  pub fn new(dbName:&str) -> Rocks {
+    let outName = format!("{}\0", dbName);
+    unsafe { helloDB( outName.as_ptr() as *const c_char) };
+    Rocks{ dbName:outName.to_string(), cursol:0 }
+  }
+}
+impl Rocks {
+  pub fn put(&self, key:&str, value:&str) -> i32 {
+    let dbName = format!("{}\0", &*(self.dbName));
+    let key = format!("{}\0",  key);
+    let value = format!("{}\0", value);
+    let sub = unsafe { putDB( (&*dbName).as_ptr() as *const c_char, key.as_ptr() as *const c_char, value.as_ptr() as *const c_char) };
+    sub
+  }
+}
+```
+
 
 ## Kotlin
 Kotlin, JavaではGradleに追加することで簡単に利用可能になります。  
