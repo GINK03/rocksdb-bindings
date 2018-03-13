@@ -1,0 +1,104 @@
+/*
+ * Copyright 2017 JetBrains s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+buildscript {
+  ext.kotlin_version = '1.2.0'
+  ext.serialization_version = '0.1.1'
+
+  repositories {
+    jcenter()
+    maven { url "https://kotlin.bintray.com/kotlinx" }
+    maven { url "https://jitpack.io" }
+    maven { url "https://bintray.com" }
+  }
+
+  dependencies {
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    classpath "org.jetbrains.kotlinx:kotlinx-gradle-serialization-plugin:$serialization_version"
+    classpath "org.xerial:sqlite-jdbc:3.20.0"
+    classpath "com.h2database:h2:1.4.196"
+    classpath "mysql:mysql-connector-java:6.0.6"
+    classpath files('resources/kuromoji-ipadic-neologd-1.0-SNAPSHOT.jar')
+    classpath fileTree(dir: 'resources', include: '*.jar')
+  }
+}
+
+apply plugin: 'java'
+apply plugin: 'kotlin'
+apply plugin: 'kotlinx-serialization'
+
+repositories {
+  jcenter()
+  maven { url "https://kotlin.bintray.com/kotlinx" }
+  maven { url "https://bintray.com" }
+  maven { url "https://dl.bintray.com/kotlin/exposed/" }
+  //flatDir {
+  //  dirs 'resources'
+  //}
+}
+
+sourceSets {
+  main.java.srcDirs += "src"
+  main.kotlin.srcDirs += "src"
+  test.kotlin.srcDirs += "test"
+}
+
+dependencies {
+  compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+  compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+  compile "org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serialization_version"
+  compile "redis.clients:jedis:2.9.0"
+  compile group: 'org.apache.spark', name: 'spark-mllib_2.11', version: '2.3.0'
+  compile group: 'org.rocksdb', name: 'rocksdbjni', version: '5.10.3'
+  compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:0.19"
+  compile "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:0.19"
+  compile "org.jetbrains.kotlinx:atomicfu-transformer:+"
+  compile "com.github.shyiko.klob:klob:0.2.0"
+  compile "com.google.code.gson:gson:2.8.2"
+  compile "org.jetbrains.exposed:exposed:0.8.6"
+  compile "org.xerial:sqlite-jdbc:3.20.0"
+  compile "com.h2database:h2:1.4.196"
+  compile "mysql:mysql-connector-java:6.0.6"
+  compile 'org.apache.commons:commons-math3:3.6.1'
+  compile 'org.apache.commons:commons-lang3:3.6'
+  compile 'de.bwaldvogel:liblinear:+'
+  compile files('resources/kuromoji-ipadic-neologd-1.0-SNAPSHOT.jar', 'resources/kuromoji-core-1.0-SNAPSHOT.jar', 'resources/kuromoji-ipadic-1.0-SNAPSHOT.jar')
+  compile fileTree(dir: 'resources', include: '*.jar')
+
+  // functional libraries of Kotlins
+  compile 'org.funktionale:funktionale-collections:+'
+  compile 'org.funktionale:funktionale-complement:+'
+  compile 'org.funktionale:funktionale-composition:+'
+  compile 'org.funktionale:funktionale-currying:+'
+  compile 'org.funktionale:funktionale-memoization:+'
+  compile 'org.funktionale:funktionale-pairing:+'
+  compile 'org.funktionale:funktionale-partials:+'
+  compile 'org.funktionale:funktionale-reverse:+'
+  compile 'org.funktionale:funktionale-utils:+'
+  compile 'org.funktionale:funktionale-option:+'
+  compile 'org.funktionale:funktionale-either:+'
+  compile 'org.funktionale:funktionale-validation:+'
+  compile 'org.funktionale:funktionale-try:+'
+  compile 'org.funktionale:funktionale-state:+'
+  compile 'org.funktionale:funktionale-pipe:+'
+}
+
+task runApp(type: JavaExec) {
+  classpath = sourceSets.main.compileClasspath + sourceSets.main.runtimeClasspath 
+  args System.getProperty("exec.args").split() 
+  workingDir = "$projectDir/build/classes/main"
+  main = 'AppKt'
+}
