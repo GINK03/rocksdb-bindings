@@ -18,11 +18,28 @@ P99というテストケースではデフォルトのJVMからRocksDBに張り�
 - LevelDB, RocksDBはPythonで分析するときの必勝パターンに自分のスキルの中に入っているので、ぜひともRocksDBも開拓したい
 - RocksDBはC++のインターフェースが美しい形で提供さており、他言語とのBindingが簡単そう
 
+## RocksDBのインストール
+Ubuntuですと標準レポジトリにないので、ビルドしてインストールする必要があります  
+```console
+$ git clone git@github.com:facebook/rocksdb.git
+$ cd rocksdb
+$ mkdir build
+$ cd build
+$ cmake ..
+$ make -j12
+$ sudo make install
+```
+
 ## Pure C++
 **注意**  
-最新のClangでは構文エラーでコンパイラが通らないので、gcc(g++)を利用する
+最新のClangでは構文エラーでコンパイラが通らないので、gcc(g++)を利用必要があります  
 
+## C++bindings
+C/C++でラッパーを書くことで任意のCのshared objectが利用できる言語とバインディングを行うことができます。  
+```cpp
+```
 ## Rust
+
 
 ## Kotlin
 Kotlin, JavaではGradleに追加することで簡単に利用可能になります。  
