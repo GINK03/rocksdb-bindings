@@ -137,9 +137,29 @@ fun main(args : Array<String>) {
   }
 
   // データの削除
-  db.del(key1)
-  db.del(key2)
+  db.delete(key1)
+  db.delete(key2)
+  
+  db.close()
 }
 ```
+**実行**  
+```console
+$ cd kotlin
+$ ./gradlew run -Dexec.args=""
+Starting a Gradle Daemon, 1 busy Daemon could not be reused, use --status for details
+:compileKotlin UP-TO-DATE
+:compileJava UP-TO-DATE
+:copyMainKotlinClasses UP-TO-DATE
+:processResources NO-SOURCE
+:classes UP-TO-DATE
+:runApp
+value1
+key1 value1
+key2 value2
+
+BUILD SUCCESSFUL
+```
+
 ## Python
 
